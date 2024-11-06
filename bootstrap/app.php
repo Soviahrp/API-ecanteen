@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'owner' => OwnerMiddleware::class,
+            'apikey' => ApiKeyMiddleware::class
         ]);
 
         // $midlleware->append(OwnerMiddleware::class);

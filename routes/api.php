@@ -29,9 +29,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
+// enpoint khusus mitra
+Route::get('products-int', [ProductController::class, 'productInt']);
+
 Route::get('user-list', [UserController::class, 'index']);
 
 
 Route::post('registration', [AuthController::class, 'registration']);
-Route::post('login', [AuthController::class, 'login']);
+
+//5 itu untuk beberapa kali, 1 itu satu menit
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
