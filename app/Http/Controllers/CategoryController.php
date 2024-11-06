@@ -6,9 +6,21 @@ use App\Models\Categories;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Resources\ResponseResource;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class CategoryController extends Controller
+class CategoryController extends Controller implements HasMiddleware
 {
+    /**
+     * Get the middleware that should be assigned to the controller.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('owner', except: ['index']),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -101,7 +113,7 @@ class CategoryController extends Controller
     public function update(Request $request, string $uuid)
     {
         $data = $request->validate([
-            'name' => 'required|string|min:3|max:255|unique:categories,name,'. $uuid . 'uuid',
+            'name' => 'required|string|min:3|max:255|unique:categories,name,'. $uuid . ',uuid',
         ]);
 
         try {

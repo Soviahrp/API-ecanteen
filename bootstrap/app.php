@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Http\Middleware\OwnerMiddleware;
+use App\Http\Middleware\ApiKeyMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -12,7 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'owner' => OwnerMiddleware::class,
+        ]);
+
+        // $midlleware->append(OwnerMiddleware::class);
+
+        // $middleware->web(append: [
+        //     OwnerMiddleware::class
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

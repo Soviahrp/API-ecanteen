@@ -8,14 +8,22 @@ use App\Http\Services\ProductService;
 use App\Http\Resources\ResponseResource;
 use App\Http\Requests\OrderTransactionRequest;
 use App\Http\Services\OrderTransactionService;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class OrderTransactionController extends Controller
+class OrderTransactionController extends Controller implements HasMiddleware
 {
     public function __construct(
         private OrderTransactionService $orderTransactionService,
         private ProductService $productService
     ) {}
 
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('owner', only: ['index']),
+        ];
+    }
 
     public function index()
     {
@@ -25,7 +33,7 @@ class OrderTransactionController extends Controller
         $order = $this->orderTransactionService->getTransaction($paginate);
 
         if ($order->isEmpty()) {
-            return new ResponseResource(true, 'Product Transaction not available', null, [
+            return new ResponseResource(true, 'Order Transaction not available', null, [
                 'code' => 200
             ], 200);
         }
@@ -113,6 +121,37 @@ class OrderTransactionController extends Controller
         ], 200);
     }
 
+    public function showByStudent(string $id)
+    {
+        $getStudentOrder = $this->orderTransactionService->getByStudent($id);
+
+        // cek student
+        if ($id != auth()->user()->id && auth()->user()->role != 'owner') {
+            return new ResponseResource(false, 'Unauthorized', null, [
+                'code' => 401
+            ], 401);
+        }
+
+        if ($getStudentOrder->isEmpty()) {
+            return new ResponseResource(false, 'Order not found with student id: ' . $id . '', null, [
+                'code' => 404
+            ], 404);
+        }
+
+        $getStudentOrder->map(function ($order) {
+            $total_price = (int) $order->total_price;
+            $order->formatted_total_price = 'Rp. ' . number_format($total_price, 0, '.', ',');
+
+            return $order;
+        });
+
+        $total_transactions = 'Rp. ' . number_format($getStudentOrder->sum('total_price'), 0, '.', ',');
+
+        return new ResponseResource(true, 'Order transaction found', $getStudentOrder, [
+            'code' => 200,
+            'total_transactions' => $total_transactions
+        ], 200);
+    }
 
     /**
      * Update the specified resource in storage.
